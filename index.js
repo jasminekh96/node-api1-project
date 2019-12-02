@@ -81,5 +81,31 @@ server.delete('/users/:id', (req, res) => {
 			});
 		});
 });
+
+server.put('/users/:id', (req, res) => {
+	const { id } = req.params;
+	const { name, bio } = req.body;
+	if (!name && !bio) {
+		// can use a return to shortcut the funciton instead of an else
+		return res.status(400).json({ error: 'Please provide name and bio for the user.' });
+	}
+	db
+		.update(id, { name, bio })
+		.then((updated) => {
+			if (updated) {
+				db.findById(id).then((user) => res.status(200).json(user)).catch((err) => {
+					console.log(err);
+					res.status(500).json({ error: 'The user informatmion could not be retrieved.' });
+				});
+			} else {
+				res.status(404).json({ error: `The user with the specified ID does not exist.` });
+			}
+		})
+		.catch((err) => {
+			console.log(err);
+			res.status(500).json({ error: 'The user information could not be modified.' });
+		});
+});
+
 const port = 5000;
 server.listen(port, () => console.log(`\n API running on port ${port} \n`));
